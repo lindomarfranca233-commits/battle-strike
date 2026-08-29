@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Battle Strike 3D</title>
+
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;overflow:hidden;width:100%;height:100%;background:#000;font-family:Arial}
+canvas{display:block}
+
+#menu{
+ position:fixed;inset:0;z-index:5;
+ display:flex;align-items:center;justify-content:center;
+ background:radial-gradient(circle,#27302c,#020303);
+ color:white;text-align:center
+}
+.box{
+ width:88%;max-width:400px;padding:30px;
+ background:#0b0e0eee;border:1px solid #ffffff25;
+ border-radius:20px
+}
+h1{font-size:38px;margin:0 0 10px}
+.red{color:#e33}
+button{
+ border:0;border-radius:14px;padding:15px 25px;
+ background:#d8323d;color:white;font-size:18px;font-weight:bold
+}
+
+#hud{
+ position:fixed;inset:0;color:white;
+ pointer-events:none;text-shadow:2px 2px 5px #000
+}
+#status{
+ position:absolute;top:12px;left:12px;
+ background:#0009;padding:10px;border-radius:10px
+}
+#vidaBar{
+ width:160px;height:10px;background:#40151a;
+ margin-top:5px;border-radius:10px
+}
+#vida{
+ width:100%;height:100%;background:#e33
+}
+#ammo{
+ position:absolute;right:15px;top:15px;
+ font-size:25px;font-weight:bold
+}
+#onda{
+ position:absolute;top:52px;right:15px;font-size:16px
+}
+#cross{
+ position:absolute;left:50%;top:50%;
+ transform:translate(-50%,-50%);
+ font-size:25px
+}
+
+#joy{
+ position:fixed;left:20px;bottom:25px;
+ width:135px;height:135px;border-radius:50%;
+ border:2px solid #ffffff30;background:#ffffff0d;
+ pointer-events:auto
+}
+#stick{
+ position:absolute;left:50%;top:50%;
+ transform:translate(-50%,-50%);
+ width:58px;height:58px;border-radius:50%;
+ background:#ffffff30
+}
+#fire{
+ position:fixed;right:20px;bottom:30px;
+ width:95px;height:95px;border-radius:50%;
+ pointer-events:auto
+}
+#reload{
+ position:fixed;right:140px;bottom:50px;
+ width:70px;height:70px;padding:0;border-radius:50%;
+ background:#555;pointer-events:auto;font-size:12px
+}
+</style>
+</head>
+
+<body>
+
+<div id="menu">
+ <div class="box">
+  <h1>BATTLE <span class="red">STRIKE</span></h1>
+  <p>🧟 ZOMBIE NIGHT — 3D</p>
+  <p>Sobreviva às ondas de zumbis.</p>
+  <button id="start">JOGAR</button>
+ </div>
+</div>
+
+<div id="hud">
+ <div id="status">
+  ❤️ <span id="hpText">100</span>
+  <div id="vidaBar"><div id="vida"></div></div>
+ </div>
+
+ <div id="ammo">12 / 60</div>
+ <div id="onda">Onda: 1</div>
+ <div id="cross">+</div>
+
+ <div id="joy"><div id="stick"></div></div>
+ <button id="reload">RELOAD</button>
+ <button id="fire">ATIRAR</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+
+let cena,camera,renderer,arma;
+let zumbis=[];
+let balas=[];
+let jogador;
+let vida=100;
+let municao=12;
+let reserva=60;
+let pontos=0;
+let onda=1;
+let jogando=false;
+let recarregando=false;
+
+let movX=0,movY=0;
+let olhando=false;
+let ultimoX=0;
+let ultimoY=0;
+
+const clock=new THREE.Clock();
+
+function iniciar(){
+
+ cena=new THREE.Scene();
+
+ cena.background=new THREE.Color(0x111517);
+
+ cena.fog=new THREE.Fog(0x111517,20,100);
+
+
+ camera=new THREE.PerspectiveCamera(
+  70,
+  innerWidth/innerHeight,
+  .1,
+  200
+ );
+
+ camera.position.set(0,1.7,8);
+
+
+ renderer=new THREE.WebGLRenderer({
+  antialias:true
+ });
+
+ renderer.setSize(innerWidth,innerHeight);
+ renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+
+ document.body.appendChild(renderer.domElement);
+
+
+ // luz
+ const luz=new THREE.HemisphereLight(
+  0xbad0ff,
+  0x202020,
+  2
+ );
+
+ cena.add(luz);
+
+ const lua=new THREE.DirectionalLight(
+  0xffffff,
+  1.2
+ );
+
+ lua.position.set(10,20,5);
+ cena.add(lua);
+
+
+ // chão
+ const chaoGeo=new THREE.PlaneGeometry(200,200);
+
+ const chaoMat=new THREE.MeshStandardMaterial({
+  color:0x202522,
+  roughness:1
+ });
+
+ const chao=new THREE.Mesh(chaoGeo,chaoMat);
+
+ chao.rotation.x=-Math.PI/2;
+
+ cena.add(chao);
+
+
+ // linhas do chão
+ const grade=new THREE.GridHelper(
+  200,100,0x39433d,0x252b28
+ );
+
+ cena.add(grade);
+
+
+ // algumas casas/estruturas
+ for(let i=0;i<25;i++){
+
+  const geo=new THREE.BoxGeometry(
+   4+Math.random()*5,
+   2+Math.random()*5,
+   4+Math.random()*5
+  );
+
+  const mat=new THREE.MeshStandardMaterial({
+   color:0x303534,
+   roughness:.9
+  });
+
+  const predio=new THREE.Mesh(geo,mat);
+
+  predio.position.set(
+   (Math.random()-.5)*100,
+   geo.parameters.height/2,
+   (Math.random()-.5)*100
+  );
+
+  cena.add(predio);
+ }
+
+
+ // jogador
+ jogador={
+  velocidade:6,
+  rotacao:0
+ };
+
+
+ criarArma();
+
+ for(let i=0;i<6;i++){
+  criarZumbi();
+ }
+
+ vida=100;
+ municao=12;
+ reserva=60;
+ pontos=0;
+ onda=1;
+
+ jogando=true;
+
+ document.getElementById("menu").style.display="none";
+
+ atualizarHUD();
+
+}
+
+
+function criarArma(){
+
+ arma=new THREE.Group();
+
+ const corpo=new THREE.Mesh(
+  new THREE.BoxGeometry(.18,.22,.8),
+  new THREE.MeshStandardMaterial({color:0x151515,metalness:.7})
+ );
+
+ corpo.position.set(.35,-.3,-.7);
+
+ arma.add(corpo);
+
+
+ const cano=new THREE.Mesh(
+  new THREE.BoxGeometry(.08,.08,.55),
+  new THREE.MeshStandardMaterial({color:0x080808,metalness:.8})
+ );
+
+ cano.position.set(.35,-.28,-1.2);
+
+ arma.add(cano);
+
+
+ camera.add(arma);
+ cena.add(camera);
+
+}
+
+
+function criarZumbi(){
+
+ const grupo=new THREE.Group();
+
+
+ const cor=[
+  0x556050,
+  0x63705c,
+  0x4a5147
+ ][Math.floor(Math.random()*3)];
+
+
+ const corpo=new THREE.Mesh(
+  new THREE.CapsuleGeometry(.45,.9,5,8),
+  new THREE.MeshStandardMaterial({
+   color:cor,
+   roughness:1
+  })
+ );
+
+ corpo.position.y=.75;
+
+ grupo.add(corpo);
+
+
+ const cabeca=new THREE.Mesh(
+  new THREE.SphereGeometry(.4,12,10),
+  new THREE.MeshStandardMaterial({
+   color:0x777d6d,
+   roughness:1
+  })
+ );
+
+ cabeca.position.y=1.55;
+
+ grupo.add(cabeca);
+
+
+ // olhos
+ const olhoMat=new THREE.MeshBasicMaterial({
+  color:0xff2222
+ });
+
+ const olho1=new THREE.Mesh(
+  new THREE.SphereGeometry(.045,6,6),
+  olhoMat
+ );
+
+ const olho2=olho1.clone();
+
+ olho1.position.set(-.13,1.6,-.35);
+ olho2.position.set(.13,1.6,-.35);
+
+ grupo.add(olho1);
+ grupo.add(olho2);
+
+
+ let ang=Math.random()*Math.PI*2;
+ let distancia=25+Math.random()*35;
+
+ grupo.position.set(
+  camera.position.x+Math.cos(ang)*distancia,
+  0,
+  camera.position.z+Math.sin(ang)*distancia
+ );
+
+
+ grupo.userData={
+  vida:3,
+  velocidade:1.2+Math.random()*1.2,
+  ataque:0
+ };
+
+
+ cena.add(grupo);
+
+ zumbis.push(grupo);
+
+}
+
+
+function atirar(){
+
+ if(!jogando||recarregando)return;
+
+ if(municao<=0){
+
+  recarregar();
+
+  return;
+
+ }
+
+ municao--;
+
+ atualizarHUD();
+
+
+ // raycast da mira
+ const raycaster=new THREE.Raycaster();
+
+ raycaster.setFromCamera(
+  new THREE.Vector2(0,0),
+  camera
+ );
+
+
+ const objetos=[];
+
+ for(const z of zumbis){
+
+  z.traverse(obj=>{
+   if(obj.isMesh)objetos.push(obj);
+  });
+
+ }
+
+
+ const hits=raycaster.intersectObjects(objetos,false);
+
+
+ if(hits.length>0){
+
+  let objeto=hits[0].object;
+
+  while(objeto.parent &&
+        !zumbis.includes(objeto)){
+
+   objeto=objeto.parent;
+
+  }
+
+
+  if(zumbis.includes(objeto)){
+
+   objeto.userData.vida--;
+
+   if(objeto.userData.vida<=0){
+
+    cena.remove(objeto);
+
+    zumbis=zumbis.filter(z=>z!==objeto);
+
+    pontos+=10;
+
+    if(pontos%60===0){
+
+     onda++;
+
+     reserva+=20;
+
+    }
+
+   }
+
+  }
+
+ }
+
+
+ // flash
+ const luz=new THREE.PointLight(
+  0xffaa55,
+  8,
+  3
+ );
+
+ luz.position.set(.35,-.25,-1);
+
+ camera.add(luz);
+
+ setTimeout(()=>{
+  camera.remove(luz);
+ },60);
+
+}
+
+
+function recarregar(){
+
+ if(recarregando)return;
+
+ if(municao>=12)return;
+
+ if(reserva<=0)return;
+
+ recarregando=true;
+
+ atualizarHUD();
+
+ setTimeout(()=>{
+
+  let n=Math.min(
+   12-municao,
+   reserva
+  );
+
+  municao+=n;
+  reserva-=n;
+
+  recarregando=false;
+
+  atualizarHUD();
+
+ },1000);
+
+}
+
+
+function atualizarHUD(){
+
+ document.getElementById("hpText").textContent=
+ Math.max(0,Math.floor(vida));
+
+ document.getElementById("vida").style.width=
+ Math.max(0,vida)+"%";
+
+ document.getElementById("ammo").textContent=
+ recarregando
+ ?"RECARREGANDO..."
+ :municao+" / "+reserva;
+
+ document.getElementById("onda").textContent=
+ "Onda: "+onda+" · Abates: "+pontos;
+
+}
+
+
+function atualizar(dt){
+
+ if(!jogando)return;
+
+
+ // movimento
+ camera.position.x+=movX*jogador.velocidade*dt;
+ camera.position.z+=movY*jogador.velocidade*dt;
+
+
+ // zumbis
+ for(const z of zumbis){
+
+  const dx=camera.position.x-z.position.x;
+  const dz=camera.position.z-z.position.z;
+
+  const distancia=Math.hypot(dx,dz);
+
+  if(distancia>1.5){
+
+   z.position.x+=
+   dx/distancia*z.userData.velocidade*dt;
+
+   z.position.z+=
+   dz/distancia*z.userData.velocidade*dt;
+
+  }else{
+
+   z.userData.ataque-=dt;
+
+   if(z.userData.ataque<=0){
+
+    vida-=10;
+
+    z.userData.ataque=.8;
+
+    if(vida<=0){
+
+     vida=0;
+     morrer();
+
+    }
+
+   }
+
+  }
+
+  // olhar para jogador
+  z.lookAt(
+   camera.position.x,
+   z.position.y,
+   camera.position.z
+  );
+
+ }
+
+
+ // spawn
+ if(zumbis.length<5+onda*2){
+
+  criarZumbi();
+
+ }
+
+
+ atualizarHUD();
+
+ renderer.render(cena,camera);
+
+}
+
+
+function morrer(){
+
+ jogando=false;
+
+ document.getElementById("menu").style.display="flex";
+
+ document.querySelector(".box").innerHTML=
+
+ "<h1>VOCÊ MORREU</h1>"+
+ "<p>Abates: "+pontos+"</p>"+
+ "<p>Onda: "+onda+"</p>"+
+ "<button onclick='location.reload()'>JOGAR NOVAMENTE</button>";
+
+}
+
+
+document.getElementById("start").onclick=iniciar;
+
+
+document.getElementById("fire").addEventListener(
+ "pointerdown",
+ e=>{
+  e.preventDefault();
+  atirar();
+ }
+);
+
+
+document.getElementById("reload").onclick=recarregar;
+
+
+// joystick
+const joy=document.getElementById("joy");
+const stick=document.getElementById("stick");
+
+let joystickAtivo=false;
+
+
+joy.addEventListener("pointerdown",e=>{
+
+ joystickAtivo=true;
+ joy.setPointerCapture(e.pointerId);
+
+ moverJoystick(e);
+
+});
+
+
+joy.addEventListener("pointermove",e=>{
+
+ if(joystickAtivo)moverJoystick(e);
+
+});
+
+
+joy.addEventListener("pointerup",()=>{
+
+ joystickAtivo=false;
+
+ movX=0;
+ movY=0;
+
+ stick.style.transform=
+ "translate(-50%,-50%)";
+
+});
+
+
+function moverJoystick(e){
+
+ const r=joy.getBoundingClientRect();
+
+ let x=e.clientX-(r.left+r.width/2);
+ let y=e.clientY-(r.top+r.height/2);
+
+ const limite=42;
+
+ const d=Math.hypot(x,y);
+
+ if(d>limite){
+
+  x=x/d*limite;
+  y=y/d*limite;
+
+ }
+
+ movX=x/limite;
+ movY=y/limite;
+
+ stick.style.transform=
+ `translate(calc(-50% + ${x}px),calc(-50% + ${y}px))`;
+
+}
+
+
+// olhar com toque na tela
+renderer?.domElement?.addEventListener("pointerdown",()=>{});
+
+
+addEventListener("pointermove",e=>{
+
+ if(!jogando)return;
+
+ if(e.clientX<160 || e.clientX>innerWidth-130)return;
+
+ camera.rotation.y-=e.movementX*.003;
+
+});
+
+
+addEventListener("resize",()=>{
+
+ if(!camera)return;
+
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+
+ renderer.setSize(
+  innerWidth,
+  innerHeight
+ );
+
+});
+
+
+function loop(){
+
+ const dt=Math.min(
+  clock.getDelta(),
+  .05
+ );
+
+ atualizar(dt);
+
+ requestAnimationFrame(loop);
+
+}
+
+loop();
+
+</script>
+
+</body>
+</html>
