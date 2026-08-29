@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Battle Strike</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:Arial}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+#menu{position:fixed;inset:0;background:#111;display:flex;align-items:center;justify-content:center;color:white;text-align:center}
+.box{padding:30px;border-radius:20px;background:#222;border:2px solid #e5a900;width:85%;max-width:350px}
+h1{color:#e5a900;font-size:36px}
+button{background:#e5a900;border:0;border-radius:12px;padding:16px 30px;font-size:20px;font-weight:bold}
+#hud{position:fixed;top:12px;left:12px;color:white;font-size:18px;font-weight:bold;text-shadow:2px 2px #000}
+#fire,#reload{position:fixed;right:20px;border:2px solid #fff5;border-radius:50%;color:white;font-weight:bold}
+#fire{bottom:30px;width:85px;height:85px;background:#b22}
+#reload{bottom:130px;width:65px;height:65px;background:#555}
+#joy{position:fixed;left:20px;bottom:25px;width:120px;height:120px;border:2px solid #fff5;border-radius:50%}
+#stick{position:absolute;left:35px;top:35px;width:46px;height:46px;border-radius:50%;background:#fff6}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hud">
+❤️ <span id="vida">100</span>
+&nbsp;&nbsp; 🔫 <span id="ammo">12</span>
+&nbsp;&nbsp; 🏆 <span id="score">0</span>
+</div>
+
+<div id="joy"><div id="stick"></div></div>
+<button id="reload">↻</button>
+<button id="fire">ATIRAR</button>
+
+<div id="menu">
+<div class="box">
+<h1>BATTLE STRIKE</h1>
+<p>Missão: elimine os inimigos!</p>
+<button id="jogar">JOGAR</button>
+</div>
+</div>
+
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+let W,H;
+let jogador;
+let inimigos=[];
+let tiros=[];
+let vida=100;
+let municao=12;
+let pontos=0;
+let jogando=false;
+let movX=0,movY=0;
+let atirando=false;
+let tempoSpawn=0;
+
+function tamanho(){
+ W=innerWidth;
+ H=innerHeight;
+ canvas.width=W;
+ canvas.height=H;
+}
+addEventListener("resize",tamanho);
+tamanho();
+
+function iniciar(){
+ jogador={
+   x:W/2,
+   y:H/2,
+   tamanho:18,
+   angulo:0,
+   velocidade:220
+ };
+ inimigos=[];
+ tiros=[];
+ vida=100;
+ municao=12;
+ pontos=0;
+ jogando=true;
+ document.getElementById("menu").style.display="none";
+ atualizarHUD();
+}
+
+document.getElementById("jogar").onclick=iniciar;
+
+function atualizarHUD(){
+ document.getElementById("vida").textContent=Math.max(0,Math.floor(vida));
+ document.getElementById("ammo").textContent=municao;
+ document.getElementById("score").textContent=pontos;
+}
+
+function criarInimigo(){
+ let lado=Math.floor(Math.random()*4);
+ let x,y;
+
+ if(lado===0){x=-30;y=Math.random()*H}
+ if(lado===1){x=W+30;y=Math.random()*H}
+ if(lado===2){x=Math.random()*W;y=-30}
+ if(lado===3){x=Math.random()*W;y=H+30}
+
+ inimigos.push({
+   x:x,y:y,
+   vida:2,
+   velocidade:50+Math.random()*35,
+   tamanho:18
+ });
+}
+
+function atirar(){
+ if(!jogando || municao<=0)return;
+
+ municao--;
+
+ tiros.push({
+   x:jogador.x+Math.cos(jogador.angulo)*25,
+   y:jogador.y+Math.sin(jogador.angulo)*25,
+   vx:Math.cos(jogador.angulo)*700,
+   vy:Math.sin(jogador.angulo)*700,
+   tempo:1
+ });
+
+ atualizarHUD();
+}
+
+document.getElementById("fire").addEventListener("touchstart",e=>{
+ e.preventDefault();
+ atirando=true;
+ atirar();
+},{passive:false});
+
+document.getElementById("fire").addEventListener("touchend",e=>{
+ e.preventDefault();
+ atirando=false;
+},{passive:false});
+
+document.getElementById("reload").onclick=()=>{
+ if(jogando){
+   municao=12;
+   atualizarHUD();
+ }
+};
+
+const joy=document.getElementById("joy");
+const stick=document.getElementById("stick");
+
+function mover(e){
+ let t=e.touches[0];
+ let r=joy.getBoundingClientRect();
+
+ let x=t.clientX-(r.left+r.width/2);
+ let y=t.clientY-(r.top+r.height/2);
+
+ let distancia=Math.hypot(x,y);
+ let limite=40;
+
+ if(distancia>limite){
+   x=x/distancia*limite;
+   y=y/distancia*limite;
+ }
+
+ movX=x/limite;
+ movY=y/limite;
+
+ if(Math.hypot(movX,movY)>.1)
+ jogador.angulo=Math.atan2(movY,movX);
+
+ stick.style.transform=`translate(${x}px,${y}px)`;
+}
+
+joy.addEventListener("touchstart",e=>{
+ e.preventDefault();
+ mover(e);
+},{passive:false});
+
+joy.addEventListener("touchmove",e=>{
+ e.preventDefault();
+ mover(e);
+},{passive:false});
+
+joy.addEventListener("touchend",()=>{
+ movX=0;
+ movY=0;
+ stick.style.transform="translate(0,0)";
+});
+
+function fim(){
+ jogando=false;
+ document.getElementById("menu").style.display="flex";
+
+ document.querySelector("#menu .box").innerHTML=
+ `<h1>FIM DE JOGO</h1>
+ <p>Você fez ${pontos} pontos!</p>
+ <button onclick="location.reload()">JOGAR NOVAMENTE</button>`;
+}
+
+function atualizar(dt){
+
+ if(!jogando)return;
+
+ jogador.x+=movX*jogador.velocidade*dt;
+ jogador.y+=movY*jogador.velocidade*dt;
+
+ jogador.x=Math.max(20,Math.min(W-20,jogador.x));
+ jogador.y=Math.max(20,Math.min(H-20,jogador.y));
+
+ if(atirando)atirar();
+
+ tempoSpawn-=dt;
+
+ if(tempoSpawn<=0){
+   criarInimigo();
+   tempoSpawn=1;
+ }
+
+ for(let i=tiros.length-1;i>=0;i--){
+   let t=tiros[i];
+
+   t.x+=t.vx*dt;
+   t.y+=t.vy*dt;
+   t.tempo-=dt;
+
+   if(t.tempo<=0){
+     tiros.splice(i,1);
+   }
+ }
+
+ for(let i=inimigos.length-1;i>=0;i--){
+
+   let e=inimigos[i];
+
+   let ang=Math.atan2(
+     jogador.y-e.y,
+     jogador.x-e.x
+   );
+
+   e.x+=Math.cos(ang)*e.velocidade*dt;
+   e.y+=Math.sin(ang)*e.velocidade*dt;
+
+   if(Math.hypot(
+     jogador.x-e.x,
+     jogador.y-e.y
+   )<jogador.tamanho+e.tamanho){
+
+     vida-=30*dt;
+
+     if(vida<=0){
+       vida=0;
+       fim();
+     }
+   }
+ }
+
+ for(let i=tiros.length-1;i>=0;i--){
+
+   let t=tiros[i];
+
+   for(let j=inimigos.length-1;j>=0;j--){
+
+     let e=inimigos[j];
+
+     if(Math.hypot(t.x-e.x,t.y-e.y)<e.tamanho+5){
+
+       e.vida--;
+       tiros.splice(i,1);
+
+       if(e.vida<=0){
+         inimigos.splice(j,1);
+         pontos+=10;
+       }
+
+       break;
+     }
+   }
+ }
+
+ atualizarHUD();
+}
+
+function desenhar(){
+
+ ctx.fillStyle="#172018";
+ ctx.fillRect(0,0,W,H);
+
+ ctx.strokeStyle="#263526";
+
+ for(let x=0;x<W;x+=50){
+   ctx.beginPath();
+   ctx.moveTo(x,0);
+   ctx.lineTo(x,H);
+   ctx.stroke();
+ }
+
+ for(let y=0;y<H;y+=50){
+   ctx.beginPath();
+   ctx.moveTo(0,y);
+   ctx.lineTo(W,y);
+   ctx.stroke();
+ }
+
+ // tiros
+ ctx.fillStyle="#ffe36b";
+
+ tiros.forEach(t=>{
+   ctx.beginPath();
+   ctx.arc(t.x,t.y,4,0,Math.PI*2);
+   ctx.fill();
+ });
+
+ // inimigos
+ inimigos.forEach(e=>{
+
+   ctx.fillStyle="#d62828";
+
+   ctx.beginPath();
+   ctx.arc(e.x,e.y,e.tamanho,0,Math.PI*2);
+   ctx.fill();
+
+   ctx.fillStyle="#222";
+   ctx.fillRect(e.x-10,e.y-5,20,8);
+
+   ctx.fillStyle="#5f5";
+   ctx.fillRect(
+     e.x-15,
+     e.y-27,
+     30*(e.vida/2),
+     4
+   );
+ });
+
+ // jogador
+ if(jogador){
+
+   ctx.save();
+
+   ctx.translate(jogador.x,jogador.y);
+   ctx.rotate(jogador.angulo);
+
+   ctx.fillStyle="#ddd";
+
+   ctx.beginPath();
+   ctx.arc(0,0,jogador.tamanho,0,Math.PI*2);
+   ctx.fill();
+
+   ctx.fillStyle="#333";
+   ctx.fillRect(8,-5,30,10);
+
+   ctx.restore();
+ }
+}
+
+let ultimo=performance.now();
+
+function loop(agora){
+
+ let dt=Math.min(.033,(agora-ultimo)/1000);
+ ultimo=agora;
+
+ atualizar(dt);
+ desenhar();
+
+ requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>
