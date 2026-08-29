@@ -3,1198 +3,726 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Battle Strike - Zombie Night</title>
+<title>Battle Strike 3D</title>
 
 <style>
-*{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-}
-
-html,body{
-  margin:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  background:#050608;
-  font-family:Arial,sans-serif;
-  touch-action:none;
-}
-
-canvas{
-  width:100%;
-  height:100%;
-  display:block;
-}
+*{box-sizing:border-box}
+html,body{margin:0;overflow:hidden;width:100%;height:100%;background:#000;font-family:Arial}
+canvas{display:block}
 
 #menu{
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  color:white;
-  background:radial-gradient(circle,#252b2c,#030405);
-  z-index:10;
+ position:fixed;inset:0;z-index:5;
+ display:flex;align-items:center;justify-content:center;
+ background:radial-gradient(circle,#27302c,#020303);
+ color:white;text-align:center
 }
-
 .box{
-  width:88%;
-  max-width:400px;
-  padding:30px;
-  border-radius:20px;
-  background:#0b0e10ee;
-  border:1px solid #ffffff22;
-  box-shadow:0 15px 60px #000;
+ width:88%;max-width:400px;padding:30px;
+ background:#0b0e0eee;border:1px solid #ffffff25;
+ border-radius:20px
 }
-
-h1{
-  font-size:40px;
-  margin:0 0 8px;
-  letter-spacing:2px;
-}
-
-.red{
-  color:#e04444;
-}
-
+h1{font-size:38px;margin:0 0 10px}
+.red{color:#e33}
 button{
-  border:0;
-  border-radius:12px;
-  padding:15px 28px;
-  font-size:18px;
-  font-weight:bold;
-  color:white;
-  background:#c62f38;
+ border:0;border-radius:14px;padding:15px 25px;
+ background:#d8323d;color:white;font-size:18px;font-weight:bold
 }
 
 #hud{
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  color:white;
+ position:fixed;inset:0;color:white;
+ pointer-events:none;text-shadow:2px 2px 5px #000
 }
-
-#top{
-  position:absolute;
-  top:12px;
-  left:12px;
-  right:12px;
-  display:flex;
-  justify-content:space-between;
+#status{
+ position:absolute;top:12px;left:12px;
+ background:#0009;padding:10px;border-radius:10px
 }
-
-.panel{
-  padding:9px 12px;
-  border-radius:12px;
-  background:#050709bb;
-  border:1px solid #ffffff22;
-  font-weight:bold;
-}
-
 #vidaBar{
-  width:150px;
-  height:9px;
-  margin-top:5px;
-  background:#351418;
-  border-radius:10px;
-  overflow:hidden;
+ width:160px;height:10px;background:#40151a;
+ margin-top:5px;border-radius:10px
 }
-
 #vida{
-  width:100%;
-  height:100%;
-  background:#d83942;
+ width:100%;height:100%;background:#e33
 }
-
 #ammo{
-  font-size:22px;
+ position:absolute;right:15px;top:15px;
+ font-size:25px;font-weight:bold
+}
+#onda{
+ position:absolute;top:52px;right:15px;font-size:16px
+}
+#cross{
+ position:absolute;left:50%;top:50%;
+ transform:translate(-50%,-50%);
+ font-size:25px
 }
 
-#joystick{
-  position:fixed;
-  left:20px;
-  bottom:25px;
-  width:135px;
-  height:135px;
-  border-radius:50%;
-  border:2px solid #ffffff25;
-  background:#ffffff0d;
-  pointer-events:auto;
+#joy{
+ position:fixed;left:20px;bottom:25px;
+ width:135px;height:135px;border-radius:50%;
+ border:2px solid #ffffff30;background:#ffffff0d;
+ pointer-events:auto
 }
-
 #stick{
-  position:absolute;
-  width:58px;
-  height:58px;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  background:#ffffff28;
-  border:2px solid #ffffff30;
+ position:absolute;left:50%;top:50%;
+ transform:translate(-50%,-50%);
+ width:58px;height:58px;border-radius:50%;
+ background:#ffffff30
 }
-
-#atirar{
-  position:fixed;
-  right:20px;
-  bottom:30px;
-  width:95px;
-  height:95px;
-  border-radius:50%;
-  background:#a8232b;
-  pointer-events:auto;
+#fire{
+ position:fixed;right:20px;bottom:30px;
+ width:95px;height:95px;border-radius:50%;
+ pointer-events:auto
 }
-
-#recarregar{
-  position:fixed;
-  right:140px;
-  bottom:50px;
-  width:70px;
-  height:70px;
-  padding:0;
-  border-radius:50%;
-  background:#444;
-  font-size:13px;
-  pointer-events:auto;
-}
-
-#mensagem{
-  position:fixed;
-  top:80px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:20px;
-  font-weight:bold;
-  text-shadow:2px 2px 5px #000;
+#reload{
+ position:fixed;right:140px;bottom:50px;
+ width:70px;height:70px;padding:0;border-radius:50%;
+ background:#555;pointer-events:auto;font-size:12px
 }
 </style>
 </head>
 
 <body>
 
-<canvas id="game"></canvas>
+<div id="menu">
+ <div class="box">
+  <h1>BATTLE <span class="red">STRIKE</span></h1>
+  <p>🧟 ZOMBIE NIGHT — 3D</p>
+  <p>Sobreviva às ondas de zumbis.</p>
+  <button id="start">JOGAR</button>
+ </div>
+</div>
 
 <div id="hud">
+ <div id="status">
+  ❤️ <span id="hpText">100</span>
+  <div id="vidaBar"><div id="vida"></div></div>
+ </div>
 
-<div id="top">
+ <div id="ammo">12 / 60</div>
+ <div id="onda">Onda: 1</div>
+ <div id="cross">+</div>
 
-<div class="panel">
-VIDA
-<div id="vidaBar">
-<div id="vida"></div>
-</div>
-</div>
-
-<div class="panel">
-<div id="ammo">12 / 84</div>
-<div id="placar">Abates: 0</div>
-<div id="onda">Onda: 1</div>
+ <div id="joy"><div id="stick"></div></div>
+ <button id="reload">RELOAD</button>
+ <button id="fire">ATIRAR</button>
 </div>
 
-</div>
-
-<div id="mensagem">SOBREVIVA</div>
-
-<div id="joystick">
-<div id="stick"></div>
-</div>
-
-<button id="recarregar">RELOAD</button>
-<button id="atirar">ATIRAR</button>
-
-</div>
-
-<div id="menu">
-
-<div class="box">
-
-<h1>BATTLE <span class="red">STRIKE</span></h1>
-
-<p>🧟 ZOMBIE NIGHT</p>
-
-<p>
-A cidade caiu.<br>
-Você é um dos últimos sobreviventes.
-</p>
-
-<button id="jogar">JOGAR</button>
-
-</div>
-
-</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
 <script>
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-
-let W,H;
-
-function tamanho(){
-
-W=innerWidth;
-H=innerHeight;
-
-canvas.width=W;
-canvas.height=H;
-
-}
-
-addEventListener("resize",tamanho);
-tamanho();
-
-
-let jogador;
+let cena,camera,renderer,arma;
 let zumbis=[];
 let balas=[];
-let particulas=[];
-
+let jogador;
 let vida=100;
 let municao=12;
-let reserva=84;
-
+let reserva=60;
 let pontos=0;
 let onda=1;
-
 let jogando=false;
 let recarregando=false;
 
-let movX=0;
-let movY=0;
+let movX=0,movY=0;
+let olhando=false;
+let ultimoX=0;
+let ultimoY=0;
 
-let atirando=false;
-
-let ultimoSpawn=0;
-let tempo=0;
-
+const clock=new THREE.Clock();
 
 function iniciar(){
 
-jogador={
-x:W/2,
-y:H/2,
-angulo:0,
-velocidade:230
-};
+ cena=new THREE.Scene();
 
-zumbis=[];
-balas=[];
-particulas=[];
+ cena.background=new THREE.Color(0x111517);
 
-vida=100;
-municao=12;
-reserva=84;
-pontos=0;
-onda=1;
+ cena.fog=new THREE.Fog(0x111517,20,100);
 
-recarregando=false;
-jogando=true;
 
-document.getElementById("menu").style.display="none";
+ camera=new THREE.PerspectiveCamera(
+  70,
+  innerWidth/innerHeight,
+  .1,
+  200
+ );
 
-for(let i=0;i<6;i++){
-criarZumbi();
+ camera.position.set(0,1.7,8);
+
+
+ renderer=new THREE.WebGLRenderer({
+  antialias:true
+ });
+
+ renderer.setSize(innerWidth,innerHeight);
+ renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+
+ document.body.appendChild(renderer.domElement);
+
+
+ // luz
+ const luz=new THREE.HemisphereLight(
+  0xbad0ff,
+  0x202020,
+  2
+ );
+
+ cena.add(luz);
+
+ const lua=new THREE.DirectionalLight(
+  0xffffff,
+  1.2
+ );
+
+ lua.position.set(10,20,5);
+ cena.add(lua);
+
+
+ // chão
+ const chaoGeo=new THREE.PlaneGeometry(200,200);
+
+ const chaoMat=new THREE.MeshStandardMaterial({
+  color:0x202522,
+  roughness:1
+ });
+
+ const chao=new THREE.Mesh(chaoGeo,chaoMat);
+
+ chao.rotation.x=-Math.PI/2;
+
+ cena.add(chao);
+
+
+ // linhas do chão
+ const grade=new THREE.GridHelper(
+  200,100,0x39433d,0x252b28
+ );
+
+ cena.add(grade);
+
+
+ // algumas casas/estruturas
+ for(let i=0;i<25;i++){
+
+  const geo=new THREE.BoxGeometry(
+   4+Math.random()*5,
+   2+Math.random()*5,
+   4+Math.random()*5
+  );
+
+  const mat=new THREE.MeshStandardMaterial({
+   color:0x303534,
+   roughness:.9
+  });
+
+  const predio=new THREE.Mesh(geo,mat);
+
+  predio.position.set(
+   (Math.random()-.5)*100,
+   geo.parameters.height/2,
+   (Math.random()-.5)*100
+  );
+
+  cena.add(predio);
+ }
+
+
+ // jogador
+ jogador={
+  velocidade:6,
+  rotacao:0
+ };
+
+
+ criarArma();
+
+ for(let i=0;i<6;i++){
+  criarZumbi();
+ }
+
+ vida=100;
+ municao=12;
+ reserva=60;
+ pontos=0;
+ onda=1;
+
+ jogando=true;
+
+ document.getElementById("menu").style.display="none";
+
+ atualizarHUD();
+
 }
 
-atualizarHUD();
 
-}
+function criarArma(){
+
+ arma=new THREE.Group();
+
+ const corpo=new THREE.Mesh(
+  new THREE.BoxGeometry(.18,.22,.8),
+  new THREE.MeshStandardMaterial({color:0x151515,metalness:.7})
+ );
+
+ corpo.position.set(.35,-.3,-.7);
+
+ arma.add(corpo);
 
 
-document.getElementById("jogar").onclick=iniciar;
+ const cano=new THREE.Mesh(
+  new THREE.BoxGeometry(.08,.08,.55),
+  new THREE.MeshStandardMaterial({color:0x080808,metalness:.8})
+ );
+
+ cano.position.set(.35,-.28,-1.2);
+
+ arma.add(cano);
 
 
-function atualizarHUD(){
-
-document.getElementById("vida").style.width=vida+"%";
-
-document.getElementById("ammo").textContent=
-recarregando
-?"RECARREGANDO..."
-:municao+" / "+reserva;
-
-document.getElementById("placar").textContent=
-"Abates: "+pontos;
-
-document.getElementById("onda").textContent=
-"Onda: "+onda;
+ camera.add(arma);
+ cena.add(camera);
 
 }
 
 
 function criarZumbi(){
 
-let lado=Math.floor(Math.random()*4);
+ const grupo=new THREE.Group();
 
-let x;
-let y;
 
-if(lado===0){
-x=-50;
-y=Math.random()*H;
-}
+ const cor=[
+  0x556050,
+  0x63705c,
+  0x4a5147
+ ][Math.floor(Math.random()*3)];
 
-if(lado===1){
-x=W+50;
-y=Math.random()*H;
-}
 
-if(lado===2){
-x=Math.random()*W;
-y=-50;
-}
+ const corpo=new THREE.Mesh(
+  new THREE.CapsuleGeometry(.45,.9,5,8),
+  new THREE.MeshStandardMaterial({
+   color:cor,
+   roughness:1
+  })
+ );
 
-if(lado===3){
-x=Math.random()*W;
-y=H+50;
-}
+ corpo.position.y=.75;
 
-let tipo=Math.random();
+ grupo.add(corpo);
 
-let z;
 
-if(tipo<0.15){
+ const cabeca=new THREE.Mesh(
+  new THREE.SphereGeometry(.4,12,10),
+  new THREE.MeshStandardMaterial({
+   color:0x777d6d,
+   roughness:1
+  })
+ );
 
-z={
-x:x,
-y:y,
-tamanho:29,
-vida:5,
-velocidade:35,
-tipo:"bruto"
-};
+ cabeca.position.y=1.55;
 
-}else if(tipo<0.35){
+ grupo.add(cabeca);
 
-z={
-x:x,
-y:y,
-tamanho:20,
-vida:2,
-velocidade:100,
-tipo:"corredor"
-};
 
-}else{
+ // olhos
+ const olhoMat=new THREE.MeshBasicMaterial({
+  color:0xff2222
+ });
 
-z={
-x:x,
-y:y,
-tamanho:23,
-vida:3,
-velocidade:55,
-tipo:"normal"
-};
+ const olho1=new THREE.Mesh(
+  new THREE.SphereGeometry(.045,6,6),
+  olhoMat
+ );
 
-}
+ const olho2=olho1.clone();
 
-zumbis.push(z);
+ olho1.position.set(-.13,1.6,-.35);
+ olho2.position.set(.13,1.6,-.35);
+
+ grupo.add(olho1);
+ grupo.add(olho2);
+
+
+ let ang=Math.random()*Math.PI*2;
+ let distancia=25+Math.random()*35;
+
+ grupo.position.set(
+  camera.position.x+Math.cos(ang)*distancia,
+  0,
+  camera.position.z+Math.sin(ang)*distancia
+ );
+
+
+ grupo.userData={
+  vida:3,
+  velocidade:1.2+Math.random()*1.2,
+  ataque:0
+ };
+
+
+ cena.add(grupo);
+
+ zumbis.push(grupo);
 
 }
 
 
 function atirar(){
 
-if(!jogando)return;
+ if(!jogando||recarregando)return;
 
-if(recarregando)return;
+ if(municao<=0){
 
-if(municao<=0){
+  recarregar();
 
-recarregar();
+  return;
 
-return;
+ }
 
-}
+ municao--;
 
-municao--;
+ atualizarHUD();
 
-let a=jogador.angulo;
 
-balas.push({
+ // raycast da mira
+ const raycaster=new THREE.Raycaster();
 
-x:jogador.x+Math.cos(a)*30,
-y:jogador.y+Math.sin(a)*30,
+ raycaster.setFromCamera(
+  new THREE.Vector2(0,0),
+  camera
+ );
 
-vx:Math.cos(a)*850,
-vy:Math.sin(a)*850,
 
-vida:0.8
+ const objetos=[];
 
-});
+ for(const z of zumbis){
 
-for(let i=0;i<7;i++){
+  z.traverse(obj=>{
+   if(obj.isMesh)objetos.push(obj);
+  });
 
-particulas.push({
+ }
 
-x:jogador.x+Math.cos(a)*30,
-y:jogador.y+Math.sin(a)*30,
 
-vx:(Math.random()-.5)*180,
-vy:(Math.random()-.5)*180,
+ const hits=raycaster.intersectObjects(objetos,false);
 
-vida:.25
 
-});
+ if(hits.length>0){
 
-}
+  let objeto=hits[0].object;
 
-atualizarHUD();
+  while(objeto.parent &&
+        !zumbis.includes(objeto)){
+
+   objeto=objeto.parent;
+
+  }
+
+
+  if(zumbis.includes(objeto)){
+
+   objeto.userData.vida--;
+
+   if(objeto.userData.vida<=0){
+
+    cena.remove(objeto);
+
+    zumbis=zumbis.filter(z=>z!==objeto);
+
+    pontos+=10;
+
+    if(pontos%60===0){
+
+     onda++;
+
+     reserva+=20;
+
+    }
+
+   }
+
+  }
+
+ }
+
+
+ // flash
+ const luz=new THREE.PointLight(
+  0xffaa55,
+  8,
+  3
+ );
+
+ luz.position.set(.35,-.25,-1);
+
+ camera.add(luz);
+
+ setTimeout(()=>{
+  camera.remove(luz);
+ },60);
 
 }
 
 
 function recarregar(){
 
-if(recarregando)return;
+ if(recarregando)return;
 
-if(municao>=12)return;
+ if(municao>=12)return;
 
-if(reserva<=0)return;
+ if(reserva<=0)return;
 
-recarregando=true;
+ recarregando=true;
 
-atualizarHUD();
+ atualizarHUD();
 
-setTimeout(()=>{
+ setTimeout(()=>{
 
-let quantidade=Math.min(
-12-municao,
-reserva
-);
+  let n=Math.min(
+   12-municao,
+   reserva
+  );
 
-municao+=quantidade;
-reserva-=quantidade;
+  municao+=n;
+  reserva-=n;
 
-recarregando=false;
+  recarregando=false;
 
-atualizarHUD();
+  atualizarHUD();
 
-},1000);
-
-}
-
-
-document.getElementById("atirar").addEventListener(
-"pointerdown",
-e=>{
-
-e.preventDefault();
-
-atirando=true;
-
-atirar();
-
-}
-);
-
-document.getElementById("atirar").addEventListener(
-"pointerup",
-()=>{
-atirando=false;
-}
-);
-
-document.getElementById("atirar").addEventListener(
-"pointercancel",
-()=>{
-atirando=false;
-}
-);
-
-
-document.getElementById("recarregar").onclick=recarregar;
-
-
-const joystick=document.getElementById("joystick");
-const stick=document.getElementById("stick");
-
-let usandoJoystick=false;
-
-
-function moverJoystick(e){
-
-let r=joystick.getBoundingClientRect();
-
-let x=e.clientX-(r.left+r.width/2);
-let y=e.clientY-(r.top+r.height/2);
-
-let distancia=Math.hypot(x,y);
-
-let limite=43;
-
-if(distancia>limite){
-
-x=x/distancia*limite;
-y=y/distancia*limite;
-
-}
-
-movX=x/limite;
-movY=y/limite;
-
-stick.style.transform=
-"translate(calc(-50% + "+x+"px),calc(-50% + "+y+"px))";
-
-if(Math.hypot(movX,movY)>.1){
-
-jogador.angulo=Math.atan2(movY,movX);
-
-}
+ },1000);
 
 }
 
 
-joystick.addEventListener(
-"pointerdown",
-e=>{
+function atualizarHUD(){
 
-usandoJoystick=true;
+ document.getElementById("hpText").textContent=
+ Math.max(0,Math.floor(vida));
 
-joystick.setPointerCapture(e.pointerId);
+ document.getElementById("vida").style.width=
+ Math.max(0,vida)+"%";
 
-moverJoystick(e);
+ document.getElementById("ammo").textContent=
+ recarregando
+ ?"RECARREGANDO..."
+ :municao+" / "+reserva;
 
-}
-);
-
-
-joystick.addEventListener(
-"pointermove",
-e=>{
-
-if(usandoJoystick){
-
-moverJoystick(e);
+ document.getElementById("onda").textContent=
+ "Onda: "+onda+" · Abates: "+pontos;
 
 }
-
-}
-);
-
-
-joystick.addEventListener(
-"pointerup",
-()=>{
-
-usandoJoystick=false;
-
-movX=0;
-movY=0;
-
-stick.style.transform=
-"translate(-50%,-50%)";
-
-}
-);
 
 
 function atualizar(dt){
 
-if(!jogando)return;
+ if(!jogando)return;
 
 
-if(atirando){
+ // movimento
+ camera.position.x+=movX*jogador.velocidade*dt;
+ camera.position.z+=movY*jogador.velocidade*dt;
 
-atirar();
+
+ // zumbis
+ for(const z of zumbis){
+
+  const dx=camera.position.x-z.position.x;
+  const dz=camera.position.z-z.position.z;
+
+  const distancia=Math.hypot(dx,dz);
+
+  if(distancia>1.5){
+
+   z.position.x+=
+   dx/distancia*z.userData.velocidade*dt;
+
+   z.position.z+=
+   dz/distancia*z.userData.velocidade*dt;
+
+  }else{
+
+   z.userData.ataque-=dt;
+
+   if(z.userData.ataque<=0){
+
+    vida-=10;
+
+    z.userData.ataque=.8;
+
+    if(vida<=0){
+
+     vida=0;
+     morrer();
+
+    }
+
+   }
+
+  }
+
+  // olhar para jogador
+  z.lookAt(
+   camera.position.x,
+   z.position.y,
+   camera.position.z
+  );
+
+ }
+
+
+ // spawn
+ if(zumbis.length<5+onda*2){
+
+  criarZumbi();
+
+ }
+
+
+ atualizarHUD();
+
+ renderer.render(cena,camera);
 
 }
 
 
-jogador.x+=
-movX*jogador.velocidade*dt;
+function morrer(){
 
-jogador.y+=
-movY*jogador.velocidade*dt;
+ jogando=false;
+
+ document.getElementById("menu").style.display="flex";
+
+ document.querySelector(".box").innerHTML=
+
+ "<h1>VOCÊ MORREU</h1>"+
+ "<p>Abates: "+pontos+"</p>"+
+ "<p>Onda: "+onda+"</p>"+
+ "<button onclick='location.reload()'>JOGAR NOVAMENTE</button>";
+
+}
 
 
-jogador.x=Math.max(
-20,
-Math.min(W-20,jogador.x)
+document.getElementById("start").onclick=iniciar;
+
+
+document.getElementById("fire").addEventListener(
+ "pointerdown",
+ e=>{
+  e.preventDefault();
+  atirar();
+ }
 );
 
-jogador.y=Math.max(
-20,
-Math.min(H-20,jogador.y)
-);
+
+document.getElementById("reload").onclick=recarregar;
 
 
-tempo+=dt;
+// joystick
+const joy=document.getElementById("joy");
+const stick=document.getElementById("stick");
+
+let joystickAtivo=false;
 
 
-if(tempo-ultimoSpawn>1){
+joy.addEventListener("pointerdown",e=>{
 
-let quantidade=5+onda*2;
+ joystickAtivo=true;
+ joy.setPointerCapture(e.pointerId);
 
-if(zumbis.length<quantidade){
-
-criarZumbi();
-
-}
-
-ultimoSpawn=tempo;
-
-}
-
-
-for(let i=balas.length-1;i>=0;i--){
-
-let b=balas[i];
-
-b.x+=b.vx*dt;
-b.y+=b.vy*dt;
-
-b.vida-=dt;
-
-if(b.vida<=0){
-
-balas.splice(i,1);
-
-}
-
-}
-
-
-for(let i=zumbis.length-1;i>=0;i--){
-
-let z=zumbis[i];
-
-let dx=jogador.x-z.x;
-let dy=jogador.y-z.y;
-
-let distancia=Math.hypot(dx,dy);
-
-if(distancia>1){
-
-z.x+=dx/distancia*z.velocidade*dt;
-z.y+=dy/distancia*z.velocidade*dt;
-
-}
-
-
-if(distancia<
-z.tamanho+18){
-
-vida-=
-(z.tipo==="bruto"?20:10)*dt;
-
-if(vida<=0){
-
-vida=0;
-
-fim();
-
-}
-
-}
-
-}
-
-
-for(let i=balas.length-1;i>=0;i--){
-
-let b=balas[i];
-
-for(let j=zumbis.length-1;j>=0;j--){
-
-let z=zumbis[j];
-
-let distancia=Math.hypot(
-b.x-z.x,
-b.y-z.y
-);
-
-if(distancia<z.tamanho+6){
-
-z.vida--;
-
-balas.splice(i,1);
-
-for(let k=0;k<6;k++){
-
-particulas.push({
-
-x:z.x,
-y:z.y,
-
-vx:(Math.random()-.5)*160,
-vy:(Math.random()-.5)*160,
-
-vida:.5
+ moverJoystick(e);
 
 });
 
-}
+
+joy.addEventListener("pointermove",e=>{
+
+ if(joystickAtivo)moverJoystick(e);
+
+});
 
 
-if(z.vida<=0){
+joy.addEventListener("pointerup",()=>{
 
-zumbis.splice(j,1);
+ joystickAtivo=false;
 
-pontos+=10;
+ movX=0;
+ movY=0;
 
-if(pontos%100===0){
+ stick.style.transform=
+ "translate(-50%,-50%)";
 
-onda++;
-
-reserva+=24;
-
-document.getElementById("mensagem")
-.textContent="NOVA ONDA: "+onda;
-
-}
-
-}
-
-break;
-
-}
-
-}
-
-}
+});
 
 
-for(let p of particulas){
+function moverJoystick(e){
 
-p.x+=p.vx*dt;
-p.y+=p.vy*dt;
+ const r=joy.getBoundingClientRect();
 
-p.vida-=dt;
+ let x=e.clientX-(r.left+r.width/2);
+ let y=e.clientY-(r.top+r.height/2);
 
-}
+ const limite=42;
 
-particulas=
-particulas.filter(p=>p.vida>0);
+ const d=Math.hypot(x,y);
 
+ if(d>limite){
 
-atualizarHUD();
+  x=x/d*limite;
+  y=y/d*limite;
 
-}
+ }
 
+ movX=x/limite;
+ movY=y/limite;
 
-function desenhar(){
-
-ctx.fillStyle="#101515";
-
-ctx.fillRect(
-0,
-0,
-W,
-H
-);
-
-
-// chão
-
-ctx.fillStyle="#171c1b";
-
-ctx.fillRect(
-0,
-0,
-W,
-H
-);
-
-
-// grade
-
-ctx.strokeStyle="#232b27";
-ctx.lineWidth=1;
-
-for(let x=0;x<W;x+=55){
-
-ctx.beginPath();
-
-ctx.moveTo(x,0);
-ctx.lineTo(x,H);
-
-ctx.stroke();
-
-}
-
-for(let y=0;y<H;y+=55){
-
-ctx.beginPath();
-
-ctx.moveTo(0,y);
-ctx.lineTo(W,y);
-
-ctx.stroke();
+ stick.style.transform=
+ `translate(calc(-50% + ${x}px),calc(-50% + ${y}px))`;
 
 }
 
 
-// sombras
-
-for(let z of zumbis){
-
-ctx.fillStyle="#0008";
-
-ctx.beginPath();
-
-ctx.ellipse(
-z.x,
-z.y+z.tamanho*.8,
-z.tamanho*1.2,
-z.tamanho*.45,
-0,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-}
+// olhar com toque na tela
+renderer?.domElement?.addEventListener("pointerdown",()=>{});
 
 
-// partículas
+addEventListener("pointermove",e=>{
 
-for(let p of particulas){
+ if(!jogando)return;
 
-ctx.globalAlpha=Math.max(
-0,
-p.vida*2
-);
+ if(e.clientX<160 || e.clientX>innerWidth-130)return;
 
-ctx.fillStyle="#e8a15a";
+ camera.rotation.y-=e.movementX*.003;
 
-ctx.fillRect(
-p.x,
-p.y,
-4,
-4
-);
+});
 
-ctx.globalAlpha=1;
+
+addEventListener("resize",()=>{
+
+ if(!camera)return;
+
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+
+ renderer.setSize(
+  innerWidth,
+  innerHeight
+ );
+
+});
+
+
+function loop(){
+
+ const dt=Math.min(
+  clock.getDelta(),
+  .05
+ );
+
+ atualizar(dt);
+
+ requestAnimationFrame(loop);
 
 }
 
-
-// balas
-
-for(let b of balas){
-
-ctx.fillStyle="#ffe18a";
-
-ctx.beginPath();
-
-ctx.arc(
-b.x,
-b.y,
-4,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-}
-
-
-// zumbis
-
-for(let z of zumbis){
-
-let cor;
-
-if(z.tipo==="bruto"){
-cor="#4c3030";
-}else if(z.tipo==="corredor"){
-cor="#40503d";
-}else{
-cor="#50574d";
-}
-
-
-ctx.fillStyle=cor;
-
-ctx.beginPath();
-
-ctx.arc(
-z.x,
-z.y,
-z.tamanho,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-
-// cabeça
-
-ctx.fillStyle="#77786a";
-
-ctx.beginPath();
-
-ctx.arc(
-z.x,
-z.y-z.tamanho*.65,
-z.tamanho*.55,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-
-// olhos
-
-ctx.fillStyle="#d22";
-
-ctx.beginPath();
-
-ctx.arc(
-z.x-z.tamanho*.2,
-z.y-z.tamanho*.72,
-3,
-0,
-Math.PI*2
-);
-
-ctx.arc(
-z.x+z.tamanho*.2,
-z.y-z.tamanho*.72,
-3,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-
-// barra de vida
-
-ctx.fillStyle="#000";
-
-ctx.fillRect(
-z.x-z.tamanho,
-z.y-z.tamanho-15,
-z.tamanho*2,
-4
-);
-
-ctx.fillStyle="#c33";
-
-ctx.fillRect(
-z.x-z.tamanho,
-z.y-z.tamanho-15,
-z.tamanho*2*(z.vida/(z.tipo==="bruto"?5:z.tipo==="corredor"?2:3)),
-4
-);
-
-}
-
-
-// jogador
-
-if(jogador){
-
-ctx.save();
-
-ctx.translate(
-jogador.x,
-jogador.y
-);
-
-ctx.rotate(
-jogador.angulo
-);
-
-
-// sombra
-
-ctx.fillStyle="#0008";
-
-ctx.beginPath();
-
-ctx.ellipse(
-0,
-14,
-23,
-9,
-0,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-
-// corpo
-
-ctx.fillStyle="#252d33";
-
-ctx.beginPath();
-
-ctx.arc(
-0,
-0,
-19,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-
-// cabeça
-
-ctx.fillStyle="#c59c78";
-
-ctx.beginPath();
-
-ctx.arc(
-0,
--8,
-11,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-
-// roupa
-
-ctx.fillStyle="#172027";
-
-ctx.fillRect(
--13,
-3,
-26,
-16
-);
-
-
-// arma
-
-ctx.fillStyle="#090a0b";
-
-ctx.fillRect(
-10,
--5,
-38,
-8
-);
-
-ctx.fillRect(
-22,
-3,
-8,
-13
-);
-
-ctx.restore();
-
-}
-
-
-// mira
-
-ctx.strokeStyle="#ffffff99";
-
-ctx.lineWidth=2;
-
-ctx.beginPath();
-
-ctx.moveTo(
-W/2-12,
-H/2
-);
-
-ctx.lineTo(
-W/2+12,
-H/2
-);
-
-ctx.moveTo(
-W/2,
-H/2-12
-);
-
-ctx.lineTo(
-W/2,
-H/2+12
-);
-
-ctx.stroke();
-
-
-// escurecimento nas bordas
-
-let grad=ctx.createRadialGradient(
-W/2,
-H/2,
-Math.min(W,H)*.25,
-W/2,
-H/2,
-Math.max(W,H)*.75
-);
-
-grad.addColorStop(
-0,
-"rgba(0,0,0,0)"
-);
-
-grad.addColorStop(
-1,
-"rgba(0,0,0,.65)"
-);
-
-ctx.fillStyle=grad;
-
-ctx.fillRect(
-0,
-0,
-W,
-H
-);
-
-}
-
-
-function fim(){
-
-jogando=false;
-
-document.getElementById("menu").style.display="flex";
-
-document.querySelector("#menu .box").innerHTML=
-
-"<h1>VOCÊ MORREU</h1>"+
-"<p>Abates: "+pontos+"</p>"+
-"<p>Onda alcançada: "+onda+"</p>"+
-"<button onclick='location.reload()'>JOGAR NOVAMENTE</button>";
-
-}
-
-
-let ultimo=performance.now();
-
-
-function loop(agora){
-
-let dt=Math.min(
-0.033,
-(agora-ultimo)/1000
-);
-
-ultimo=agora;
-
-atualizar(dt);
-
-desenhar();
-
-requestAnimationFrame(loop);
-
-}
-
-
-requestAnimationFrame(loop);
+loop();
 
 </script>
 
