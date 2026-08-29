@@ -3,21 +3,172 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Battle Strike</title>
+<title>Battle Strike - Zombie Night</title>
+
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:Arial}
-canvas{display:block;width:100%;height:100%;touch-action:none}
-#menu{position:fixed;inset:0;background:#111;display:flex;align-items:center;justify-content:center;color:white;text-align:center}
-.box{padding:30px;border-radius:20px;background:#222;border:2px solid #e5a900;width:85%;max-width:350px}
-h1{color:#e5a900;font-size:36px}
-button{background:#e5a900;border:0;border-radius:12px;padding:16px 30px;font-size:20px;font-weight:bold}
-#hud{position:fixed;top:12px;left:12px;color:white;font-size:18px;font-weight:bold;text-shadow:2px 2px #000}
-#fire,#reload{position:fixed;right:20px;border:2px solid #fff5;border-radius:50%;color:white;font-weight:bold}
-#fire{bottom:30px;width:85px;height:85px;background:#b22}
-#reload{bottom:130px;width:65px;height:65px;background:#555}
-#joy{position:fixed;left:20px;bottom:25px;width:120px;height:120px;border:2px solid #fff5;border-radius:50%}
-#stick{position:absolute;left:35px;top:35px;width:46px;height:46px;border-radius:50%;background:#fff6}
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#050608;
+  font-family:Arial,sans-serif;
+  touch-action:none;
+}
+
+canvas{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+#menu{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:white;
+  background:radial-gradient(circle,#252b2c,#030405);
+  z-index:10;
+}
+
+.box{
+  width:88%;
+  max-width:400px;
+  padding:30px;
+  border-radius:20px;
+  background:#0b0e10ee;
+  border:1px solid #ffffff22;
+  box-shadow:0 15px 60px #000;
+}
+
+h1{
+  font-size:40px;
+  margin:0 0 8px;
+  letter-spacing:2px;
+}
+
+.red{
+  color:#e04444;
+}
+
+button{
+  border:0;
+  border-radius:12px;
+  padding:15px 28px;
+  font-size:18px;
+  font-weight:bold;
+  color:white;
+  background:#c62f38;
+}
+
+#hud{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  color:white;
+}
+
+#top{
+  position:absolute;
+  top:12px;
+  left:12px;
+  right:12px;
+  display:flex;
+  justify-content:space-between;
+}
+
+.panel{
+  padding:9px 12px;
+  border-radius:12px;
+  background:#050709bb;
+  border:1px solid #ffffff22;
+  font-weight:bold;
+}
+
+#vidaBar{
+  width:150px;
+  height:9px;
+  margin-top:5px;
+  background:#351418;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+#vida{
+  width:100%;
+  height:100%;
+  background:#d83942;
+}
+
+#ammo{
+  font-size:22px;
+}
+
+#joystick{
+  position:fixed;
+  left:20px;
+  bottom:25px;
+  width:135px;
+  height:135px;
+  border-radius:50%;
+  border:2px solid #ffffff25;
+  background:#ffffff0d;
+  pointer-events:auto;
+}
+
+#stick{
+  position:absolute;
+  width:58px;
+  height:58px;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:#ffffff28;
+  border:2px solid #ffffff30;
+}
+
+#atirar{
+  position:fixed;
+  right:20px;
+  bottom:30px;
+  width:95px;
+  height:95px;
+  border-radius:50%;
+  background:#a8232b;
+  pointer-events:auto;
+}
+
+#recarregar{
+  position:fixed;
+  right:140px;
+  bottom:50px;
+  width:70px;
+  height:70px;
+  padding:0;
+  border-radius:50%;
+  background:#444;
+  font-size:13px;
+  pointer-events:auto;
+}
+
+#mensagem{
+  position:fixed;
+  top:80px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:20px;
+  font-weight:bold;
+  text-shadow:2px 2px 5px #000;
+}
 </style>
 </head>
 
@@ -26,347 +177,1025 @@ button{background:#e5a900;border:0;border-radius:12px;padding:16px 30px;font-siz
 <canvas id="game"></canvas>
 
 <div id="hud">
-❤️ <span id="vida">100</span>
-&nbsp;&nbsp; 🔫 <span id="ammo">12</span>
-&nbsp;&nbsp; 🏆 <span id="score">0</span>
+
+<div id="top">
+
+<div class="panel">
+VIDA
+<div id="vidaBar">
+<div id="vida"></div>
+</div>
 </div>
 
-<div id="joy"><div id="stick"></div></div>
-<button id="reload">↻</button>
-<button id="fire">ATIRAR</button>
+<div class="panel">
+<div id="ammo">12 / 84</div>
+<div id="placar">Abates: 0</div>
+<div id="onda">Onda: 1</div>
+</div>
+
+</div>
+
+<div id="mensagem">SOBREVIVA</div>
+
+<div id="joystick">
+<div id="stick"></div>
+</div>
+
+<button id="recarregar">RELOAD</button>
+<button id="atirar">ATIRAR</button>
+
+</div>
 
 <div id="menu">
+
 <div class="box">
-<h1>BATTLE STRIKE</h1>
-<p>Missão: elimine os inimigos!</p>
+
+<h1>BATTLE <span class="red">STRIKE</span></h1>
+
+<p>🧟 ZOMBIE NIGHT</p>
+
+<p>
+A cidade caiu.<br>
+Você é um dos últimos sobreviventes.
+</p>
+
 <button id="jogar">JOGAR</button>
+
 </div>
+
 </div>
 
 <script>
+
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d");
 
 let W,H;
-let jogador;
-let inimigos=[];
-let tiros=[];
-let vida=100;
-let municao=12;
-let pontos=0;
-let jogando=false;
-let movX=0,movY=0;
-let atirando=false;
-let tempoSpawn=0;
 
 function tamanho(){
- W=innerWidth;
- H=innerHeight;
- canvas.width=W;
- canvas.height=H;
+
+W=innerWidth;
+H=innerHeight;
+
+canvas.width=W;
+canvas.height=H;
+
 }
+
 addEventListener("resize",tamanho);
 tamanho();
 
+
+let jogador;
+let zumbis=[];
+let balas=[];
+let particulas=[];
+
+let vida=100;
+let municao=12;
+let reserva=84;
+
+let pontos=0;
+let onda=1;
+
+let jogando=false;
+let recarregando=false;
+
+let movX=0;
+let movY=0;
+
+let atirando=false;
+
+let ultimoSpawn=0;
+let tempo=0;
+
+
 function iniciar(){
- jogador={
-   x:W/2,
-   y:H/2,
-   tamanho:18,
-   angulo:0,
-   velocidade:220
- };
- inimigos=[];
- tiros=[];
- vida=100;
- municao=12;
- pontos=0;
- jogando=true;
- document.getElementById("menu").style.display="none";
- atualizarHUD();
+
+jogador={
+x:W/2,
+y:H/2,
+angulo:0,
+velocidade:230
+};
+
+zumbis=[];
+balas=[];
+particulas=[];
+
+vida=100;
+municao=12;
+reserva=84;
+pontos=0;
+onda=1;
+
+recarregando=false;
+jogando=true;
+
+document.getElementById("menu").style.display="none";
+
+for(let i=0;i<6;i++){
+criarZumbi();
 }
+
+atualizarHUD();
+
+}
+
 
 document.getElementById("jogar").onclick=iniciar;
 
+
 function atualizarHUD(){
- document.getElementById("vida").textContent=Math.max(0,Math.floor(vida));
- document.getElementById("ammo").textContent=municao;
- document.getElementById("score").textContent=pontos;
+
+document.getElementById("vida").style.width=vida+"%";
+
+document.getElementById("ammo").textContent=
+recarregando
+?"RECARREGANDO..."
+:municao+" / "+reserva;
+
+document.getElementById("placar").textContent=
+"Abates: "+pontos;
+
+document.getElementById("onda").textContent=
+"Onda: "+onda;
+
 }
 
-function criarInimigo(){
- let lado=Math.floor(Math.random()*4);
- let x,y;
 
- if(lado===0){x=-30;y=Math.random()*H}
- if(lado===1){x=W+30;y=Math.random()*H}
- if(lado===2){x=Math.random()*W;y=-30}
- if(lado===3){x=Math.random()*W;y=H+30}
+function criarZumbi(){
 
- inimigos.push({
-   x:x,y:y,
-   vida:2,
-   velocidade:50+Math.random()*35,
-   tamanho:18
- });
+let lado=Math.floor(Math.random()*4);
+
+let x;
+let y;
+
+if(lado===0){
+x=-50;
+y=Math.random()*H;
 }
 
-function atirar(){
- if(!jogando || municao<=0)return;
-
- municao--;
-
- tiros.push({
-   x:jogador.x+Math.cos(jogador.angulo)*25,
-   y:jogador.y+Math.sin(jogador.angulo)*25,
-   vx:Math.cos(jogador.angulo)*700,
-   vy:Math.sin(jogador.angulo)*700,
-   tempo:1
- });
-
- atualizarHUD();
+if(lado===1){
+x=W+50;
+y=Math.random()*H;
 }
 
-document.getElementById("fire").addEventListener("touchstart",e=>{
- e.preventDefault();
- atirando=true;
- atirar();
-},{passive:false});
+if(lado===2){
+x=Math.random()*W;
+y=-50;
+}
 
-document.getElementById("fire").addEventListener("touchend",e=>{
- e.preventDefault();
- atirando=false;
-},{passive:false});
+if(lado===3){
+x=Math.random()*W;
+y=H+50;
+}
 
-document.getElementById("reload").onclick=()=>{
- if(jogando){
-   municao=12;
-   atualizarHUD();
- }
+let tipo=Math.random();
+
+let z;
+
+if(tipo<0.15){
+
+z={
+x:x,
+y:y,
+tamanho:29,
+vida:5,
+velocidade:35,
+tipo:"bruto"
 };
 
-const joy=document.getElementById("joy");
-const stick=document.getElementById("stick");
+}else if(tipo<0.35){
 
-function mover(e){
- let t=e.touches[0];
- let r=joy.getBoundingClientRect();
+z={
+x:x,
+y:y,
+tamanho:20,
+vida:2,
+velocidade:100,
+tipo:"corredor"
+};
 
- let x=t.clientX-(r.left+r.width/2);
- let y=t.clientY-(r.top+r.height/2);
+}else{
 
- let distancia=Math.hypot(x,y);
- let limite=40;
+z={
+x:x,
+y:y,
+tamanho:23,
+vida:3,
+velocidade:55,
+tipo:"normal"
+};
 
- if(distancia>limite){
-   x=x/distancia*limite;
-   y=y/distancia*limite;
- }
-
- movX=x/limite;
- movY=y/limite;
-
- if(Math.hypot(movX,movY)>.1)
- jogador.angulo=Math.atan2(movY,movX);
-
- stick.style.transform=`translate(${x}px,${y}px)`;
 }
 
-joy.addEventListener("touchstart",e=>{
- e.preventDefault();
- mover(e);
-},{passive:false});
+zumbis.push(z);
 
-joy.addEventListener("touchmove",e=>{
- e.preventDefault();
- mover(e);
-},{passive:false});
+}
 
-joy.addEventListener("touchend",()=>{
- movX=0;
- movY=0;
- stick.style.transform="translate(0,0)";
+
+function atirar(){
+
+if(!jogando)return;
+
+if(recarregando)return;
+
+if(municao<=0){
+
+recarregar();
+
+return;
+
+}
+
+municao--;
+
+let a=jogador.angulo;
+
+balas.push({
+
+x:jogador.x+Math.cos(a)*30,
+y:jogador.y+Math.sin(a)*30,
+
+vx:Math.cos(a)*850,
+vy:Math.sin(a)*850,
+
+vida:0.8
+
 });
 
-function fim(){
- jogando=false;
- document.getElementById("menu").style.display="flex";
+for(let i=0;i<7;i++){
 
- document.querySelector("#menu .box").innerHTML=
- `<h1>FIM DE JOGO</h1>
- <p>Você fez ${pontos} pontos!</p>
- <button onclick="location.reload()">JOGAR NOVAMENTE</button>`;
+particulas.push({
+
+x:jogador.x+Math.cos(a)*30,
+y:jogador.y+Math.sin(a)*30,
+
+vx:(Math.random()-.5)*180,
+vy:(Math.random()-.5)*180,
+
+vida:.25
+
+});
+
 }
+
+atualizarHUD();
+
+}
+
+
+function recarregar(){
+
+if(recarregando)return;
+
+if(municao>=12)return;
+
+if(reserva<=0)return;
+
+recarregando=true;
+
+atualizarHUD();
+
+setTimeout(()=>{
+
+let quantidade=Math.min(
+12-municao,
+reserva
+);
+
+municao+=quantidade;
+reserva-=quantidade;
+
+recarregando=false;
+
+atualizarHUD();
+
+},1000);
+
+}
+
+
+document.getElementById("atirar").addEventListener(
+"pointerdown",
+e=>{
+
+e.preventDefault();
+
+atirando=true;
+
+atirar();
+
+}
+);
+
+document.getElementById("atirar").addEventListener(
+"pointerup",
+()=>{
+atirando=false;
+}
+);
+
+document.getElementById("atirar").addEventListener(
+"pointercancel",
+()=>{
+atirando=false;
+}
+);
+
+
+document.getElementById("recarregar").onclick=recarregar;
+
+
+const joystick=document.getElementById("joystick");
+const stick=document.getElementById("stick");
+
+let usandoJoystick=false;
+
+
+function moverJoystick(e){
+
+let r=joystick.getBoundingClientRect();
+
+let x=e.clientX-(r.left+r.width/2);
+let y=e.clientY-(r.top+r.height/2);
+
+let distancia=Math.hypot(x,y);
+
+let limite=43;
+
+if(distancia>limite){
+
+x=x/distancia*limite;
+y=y/distancia*limite;
+
+}
+
+movX=x/limite;
+movY=y/limite;
+
+stick.style.transform=
+"translate(calc(-50% + "+x+"px),calc(-50% + "+y+"px))";
+
+if(Math.hypot(movX,movY)>.1){
+
+jogador.angulo=Math.atan2(movY,movX);
+
+}
+
+}
+
+
+joystick.addEventListener(
+"pointerdown",
+e=>{
+
+usandoJoystick=true;
+
+joystick.setPointerCapture(e.pointerId);
+
+moverJoystick(e);
+
+}
+);
+
+
+joystick.addEventListener(
+"pointermove",
+e=>{
+
+if(usandoJoystick){
+
+moverJoystick(e);
+
+}
+
+}
+);
+
+
+joystick.addEventListener(
+"pointerup",
+()=>{
+
+usandoJoystick=false;
+
+movX=0;
+movY=0;
+
+stick.style.transform=
+"translate(-50%,-50%)";
+
+}
+);
+
 
 function atualizar(dt){
 
- if(!jogando)return;
+if(!jogando)return;
 
- jogador.x+=movX*jogador.velocidade*dt;
- jogador.y+=movY*jogador.velocidade*dt;
 
- jogador.x=Math.max(20,Math.min(W-20,jogador.x));
- jogador.y=Math.max(20,Math.min(H-20,jogador.y));
+if(atirando){
 
- if(atirando)atirar();
+atirar();
 
- tempoSpawn-=dt;
-
- if(tempoSpawn<=0){
-   criarInimigo();
-   tempoSpawn=1;
- }
-
- for(let i=tiros.length-1;i>=0;i--){
-   let t=tiros[i];
-
-   t.x+=t.vx*dt;
-   t.y+=t.vy*dt;
-   t.tempo-=dt;
-
-   if(t.tempo<=0){
-     tiros.splice(i,1);
-   }
- }
-
- for(let i=inimigos.length-1;i>=0;i--){
-
-   let e=inimigos[i];
-
-   let ang=Math.atan2(
-     jogador.y-e.y,
-     jogador.x-e.x
-   );
-
-   e.x+=Math.cos(ang)*e.velocidade*dt;
-   e.y+=Math.sin(ang)*e.velocidade*dt;
-
-   if(Math.hypot(
-     jogador.x-e.x,
-     jogador.y-e.y
-   )<jogador.tamanho+e.tamanho){
-
-     vida-=30*dt;
-
-     if(vida<=0){
-       vida=0;
-       fim();
-     }
-   }
- }
-
- for(let i=tiros.length-1;i>=0;i--){
-
-   let t=tiros[i];
-
-   for(let j=inimigos.length-1;j>=0;j--){
-
-     let e=inimigos[j];
-
-     if(Math.hypot(t.x-e.x,t.y-e.y)<e.tamanho+5){
-
-       e.vida--;
-       tiros.splice(i,1);
-
-       if(e.vida<=0){
-         inimigos.splice(j,1);
-         pontos+=10;
-       }
-
-       break;
-     }
-   }
- }
-
- atualizarHUD();
 }
+
+
+jogador.x+=
+movX*jogador.velocidade*dt;
+
+jogador.y+=
+movY*jogador.velocidade*dt;
+
+
+jogador.x=Math.max(
+20,
+Math.min(W-20,jogador.x)
+);
+
+jogador.y=Math.max(
+20,
+Math.min(H-20,jogador.y)
+);
+
+
+tempo+=dt;
+
+
+if(tempo-ultimoSpawn>1){
+
+let quantidade=5+onda*2;
+
+if(zumbis.length<quantidade){
+
+criarZumbi();
+
+}
+
+ultimoSpawn=tempo;
+
+}
+
+
+for(let i=balas.length-1;i>=0;i--){
+
+let b=balas[i];
+
+b.x+=b.vx*dt;
+b.y+=b.vy*dt;
+
+b.vida-=dt;
+
+if(b.vida<=0){
+
+balas.splice(i,1);
+
+}
+
+}
+
+
+for(let i=zumbis.length-1;i>=0;i--){
+
+let z=zumbis[i];
+
+let dx=jogador.x-z.x;
+let dy=jogador.y-z.y;
+
+let distancia=Math.hypot(dx,dy);
+
+if(distancia>1){
+
+z.x+=dx/distancia*z.velocidade*dt;
+z.y+=dy/distancia*z.velocidade*dt;
+
+}
+
+
+if(distancia<
+z.tamanho+18){
+
+vida-=
+(z.tipo==="bruto"?20:10)*dt;
+
+if(vida<=0){
+
+vida=0;
+
+fim();
+
+}
+
+}
+
+}
+
+
+for(let i=balas.length-1;i>=0;i--){
+
+let b=balas[i];
+
+for(let j=zumbis.length-1;j>=0;j--){
+
+let z=zumbis[j];
+
+let distancia=Math.hypot(
+b.x-z.x,
+b.y-z.y
+);
+
+if(distancia<z.tamanho+6){
+
+z.vida--;
+
+balas.splice(i,1);
+
+for(let k=0;k<6;k++){
+
+particulas.push({
+
+x:z.x,
+y:z.y,
+
+vx:(Math.random()-.5)*160,
+vy:(Math.random()-.5)*160,
+
+vida:.5
+
+});
+
+}
+
+
+if(z.vida<=0){
+
+zumbis.splice(j,1);
+
+pontos+=10;
+
+if(pontos%100===0){
+
+onda++;
+
+reserva+=24;
+
+document.getElementById("mensagem")
+.textContent="NOVA ONDA: "+onda;
+
+}
+
+}
+
+break;
+
+}
+
+}
+
+}
+
+
+for(let p of particulas){
+
+p.x+=p.vx*dt;
+p.y+=p.vy*dt;
+
+p.vida-=dt;
+
+}
+
+particulas=
+particulas.filter(p=>p.vida>0);
+
+
+atualizarHUD();
+
+}
+
 
 function desenhar(){
 
- ctx.fillStyle="#172018";
- ctx.fillRect(0,0,W,H);
+ctx.fillStyle="#101515";
 
- ctx.strokeStyle="#263526";
+ctx.fillRect(
+0,
+0,
+W,
+H
+);
 
- for(let x=0;x<W;x+=50){
-   ctx.beginPath();
-   ctx.moveTo(x,0);
-   ctx.lineTo(x,H);
-   ctx.stroke();
- }
 
- for(let y=0;y<H;y+=50){
-   ctx.beginPath();
-   ctx.moveTo(0,y);
-   ctx.lineTo(W,y);
-   ctx.stroke();
- }
+// chão
 
- // tiros
- ctx.fillStyle="#ffe36b";
+ctx.fillStyle="#171c1b";
 
- tiros.forEach(t=>{
-   ctx.beginPath();
-   ctx.arc(t.x,t.y,4,0,Math.PI*2);
-   ctx.fill();
- });
+ctx.fillRect(
+0,
+0,
+W,
+H
+);
 
- // inimigos
- inimigos.forEach(e=>{
 
-   ctx.fillStyle="#d62828";
+// grade
 
-   ctx.beginPath();
-   ctx.arc(e.x,e.y,e.tamanho,0,Math.PI*2);
-   ctx.fill();
+ctx.strokeStyle="#232b27";
+ctx.lineWidth=1;
 
-   ctx.fillStyle="#222";
-   ctx.fillRect(e.x-10,e.y-5,20,8);
+for(let x=0;x<W;x+=55){
 
-   ctx.fillStyle="#5f5";
-   ctx.fillRect(
-     e.x-15,
-     e.y-27,
-     30*(e.vida/2),
-     4
-   );
- });
+ctx.beginPath();
 
- // jogador
- if(jogador){
+ctx.moveTo(x,0);
+ctx.lineTo(x,H);
 
-   ctx.save();
+ctx.stroke();
 
-   ctx.translate(jogador.x,jogador.y);
-   ctx.rotate(jogador.angulo);
-
-   ctx.fillStyle="#ddd";
-
-   ctx.beginPath();
-   ctx.arc(0,0,jogador.tamanho,0,Math.PI*2);
-   ctx.fill();
-
-   ctx.fillStyle="#333";
-   ctx.fillRect(8,-5,30,10);
-
-   ctx.restore();
- }
 }
+
+for(let y=0;y<H;y+=55){
+
+ctx.beginPath();
+
+ctx.moveTo(0,y);
+ctx.lineTo(W,y);
+
+ctx.stroke();
+
+}
+
+
+// sombras
+
+for(let z of zumbis){
+
+ctx.fillStyle="#0008";
+
+ctx.beginPath();
+
+ctx.ellipse(
+z.x,
+z.y+z.tamanho*.8,
+z.tamanho*1.2,
+z.tamanho*.45,
+0,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+}
+
+
+// partículas
+
+for(let p of particulas){
+
+ctx.globalAlpha=Math.max(
+0,
+p.vida*2
+);
+
+ctx.fillStyle="#e8a15a";
+
+ctx.fillRect(
+p.x,
+p.y,
+4,
+4
+);
+
+ctx.globalAlpha=1;
+
+}
+
+
+// balas
+
+for(let b of balas){
+
+ctx.fillStyle="#ffe18a";
+
+ctx.beginPath();
+
+ctx.arc(
+b.x,
+b.y,
+4,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+}
+
+
+// zumbis
+
+for(let z of zumbis){
+
+let cor;
+
+if(z.tipo==="bruto"){
+cor="#4c3030";
+}else if(z.tipo==="corredor"){
+cor="#40503d";
+}else{
+cor="#50574d";
+}
+
+
+ctx.fillStyle=cor;
+
+ctx.beginPath();
+
+ctx.arc(
+z.x,
+z.y,
+z.tamanho,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+
+// cabeça
+
+ctx.fillStyle="#77786a";
+
+ctx.beginPath();
+
+ctx.arc(
+z.x,
+z.y-z.tamanho*.65,
+z.tamanho*.55,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+
+// olhos
+
+ctx.fillStyle="#d22";
+
+ctx.beginPath();
+
+ctx.arc(
+z.x-z.tamanho*.2,
+z.y-z.tamanho*.72,
+3,
+0,
+Math.PI*2
+);
+
+ctx.arc(
+z.x+z.tamanho*.2,
+z.y-z.tamanho*.72,
+3,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+
+// barra de vida
+
+ctx.fillStyle="#000";
+
+ctx.fillRect(
+z.x-z.tamanho,
+z.y-z.tamanho-15,
+z.tamanho*2,
+4
+);
+
+ctx.fillStyle="#c33";
+
+ctx.fillRect(
+z.x-z.tamanho,
+z.y-z.tamanho-15,
+z.tamanho*2*(z.vida/(z.tipo==="bruto"?5:z.tipo==="corredor"?2:3)),
+4
+);
+
+}
+
+
+// jogador
+
+if(jogador){
+
+ctx.save();
+
+ctx.translate(
+jogador.x,
+jogador.y
+);
+
+ctx.rotate(
+jogador.angulo
+);
+
+
+// sombra
+
+ctx.fillStyle="#0008";
+
+ctx.beginPath();
+
+ctx.ellipse(
+0,
+14,
+23,
+9,
+0,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+
+// corpo
+
+ctx.fillStyle="#252d33";
+
+ctx.beginPath();
+
+ctx.arc(
+0,
+0,
+19,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+
+// cabeça
+
+ctx.fillStyle="#c59c78";
+
+ctx.beginPath();
+
+ctx.arc(
+0,
+-8,
+11,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+
+// roupa
+
+ctx.fillStyle="#172027";
+
+ctx.fillRect(
+-13,
+3,
+26,
+16
+);
+
+
+// arma
+
+ctx.fillStyle="#090a0b";
+
+ctx.fillRect(
+10,
+-5,
+38,
+8
+);
+
+ctx.fillRect(
+22,
+3,
+8,
+13
+);
+
+ctx.restore();
+
+}
+
+
+// mira
+
+ctx.strokeStyle="#ffffff99";
+
+ctx.lineWidth=2;
+
+ctx.beginPath();
+
+ctx.moveTo(
+W/2-12,
+H/2
+);
+
+ctx.lineTo(
+W/2+12,
+H/2
+);
+
+ctx.moveTo(
+W/2,
+H/2-12
+);
+
+ctx.lineTo(
+W/2,
+H/2+12
+);
+
+ctx.stroke();
+
+
+// escurecimento nas bordas
+
+let grad=ctx.createRadialGradient(
+W/2,
+H/2,
+Math.min(W,H)*.25,
+W/2,
+H/2,
+Math.max(W,H)*.75
+);
+
+grad.addColorStop(
+0,
+"rgba(0,0,0,0)"
+);
+
+grad.addColorStop(
+1,
+"rgba(0,0,0,.65)"
+);
+
+ctx.fillStyle=grad;
+
+ctx.fillRect(
+0,
+0,
+W,
+H
+);
+
+}
+
+
+function fim(){
+
+jogando=false;
+
+document.getElementById("menu").style.display="flex";
+
+document.querySelector("#menu .box").innerHTML=
+
+"<h1>VOCÊ MORREU</h1>"+
+"<p>Abates: "+pontos+"</p>"+
+"<p>Onda alcançada: "+onda+"</p>"+
+"<button onclick='location.reload()'>JOGAR NOVAMENTE</button>";
+
+}
+
 
 let ultimo=performance.now();
 
+
 function loop(agora){
 
- let dt=Math.min(.033,(agora-ultimo)/1000);
- ultimo=agora;
+let dt=Math.min(
+0.033,
+(agora-ultimo)/1000
+);
 
- atualizar(dt);
- desenhar();
+ultimo=agora;
 
- requestAnimationFrame(loop);
-}
+atualizar(dt);
+
+desenhar();
 
 requestAnimationFrame(loop);
+
+}
+
+
+requestAnimationFrame(loop);
+
 </script>
 
 </body>
